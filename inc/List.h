@@ -28,7 +28,8 @@ public:
 	list_iterator(list_elem<T> * elem_ptr) { ptr = elem_ptr; }
 	~list_iterator() {}
 
-	list_iterator<T> operator++ (int) { ptr = ptr->next; return *this; }
+	list_iterator<T> operator++ (int) { list_iterator<T> tmp = *this; ptr = ptr->next; return tmp; }
+	list_iterator<T> operator++ () { ptr = ptr->next; return *this; }
 	list_iterator<T> operator+ (ulint offset) 
 	{ 
 		list_elem<T> * tmp = ptr;

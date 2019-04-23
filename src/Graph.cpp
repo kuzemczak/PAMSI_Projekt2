@@ -1,63 +1,18 @@
+#include "Graph.h"
 #include <fstream>
 
-#include "Graph.h"
 
 Graph::Graph()
 {
 	starting_node_ = -1;
 	size_ = 0;
-	adjacency_list_ = NULL;
+	predecessors = NULL;
+	shortest_paths = NULL;
 }
 
 
 Graph::~Graph()
 {
-}
-
-void Graph::add_neighbour(ulint nodeNum, ulint neighbourNum, ulint pathCost)
-{
-	adjacency_list_[nodeNum].push(Neighbour(neighbourNum, pathCost));
-}
-
-void Graph::read_file(const std::string & name)
-{
-	std::ifstream file;
-	file.open(name.c_str(), std::ios::in);
-
-	if (!file.is_open())
-		throw 3;
-
-	ulint edges, node, neighbour, cost;
-
-	if (!(file >> edges && file >> node && file >> cost))
-	{
-		file.close();
-		throw 4;
-	}
-
-	starting_node_ = cost;
-	size_ = node;
-	if(adjacency_list_ != NULL)
-		delete[] adjacency_list_;
-	adjacency_list_ = new List<Neighbour>[node];
-
-	for (int i = 0; i < edges; i++)
-	{
-		if (!(file >> node && file >> neighbour && file >> cost))
-		{
-			file.close();
-			throw 4;
-		}
-		add_neighbour(node, neighbour, cost);
-	}
-
-	if (size_ < 1 || starting_node_ < 0 || starting_node_ >= size_)
-	{
-		file.close();
-		throw 4;
-	}
-
-	file.close();
 }
 
 ulint Graph::size()
@@ -70,22 +25,43 @@ ulint Graph::starting_node()
 	return starting_node_;
 }
 
-List<Neighbour> & Graph::operator [] (ulint index)
+void Graph::toFile(const std::string & s)
 {
-	return adjacency_list_[index];
-}
+	std::ofstream file;
+	file.open(s, std::ios::out);
+	if (!file.is_open())
+		throw 3;
 
-std::ostream & operator << (std::ostream & out, Graph & graph)
-{
-	for (int i = 0; i < graph.size(); i++)
+	for (ulint i = 0; i < size_; i++)
 	{
-		out << "(" << i << ")";
-		for (list_iterator<Neighbour> it = graph[i].begin(); it != graph[i].end(); it++)
+		file << i << ": ";
+#ifdef TO_FILE_AND_COUT
+		std::cout << i << ": ";
+#endif
+		Vector<ulint> path;
+		path.push_back(i);
+		while (path[path.size() - 1] != starting_node_ &&
+			predecessors[path[path.size() - 1]] < size_)
 		{
-			out << "->(" << (*it).number << ")[" << (*it).path_cost << "]";
+			path.push_back(predecessors[path[path.size() - 1]]);
 		}
-		out << std::endl;
+		ulint popped = path.pop_back();
+		file << popped;
+#ifdef TO_FILE_AND_COUT
+		std::cout << popped;
+#endif
+		while (path.size() > 0)
+		{
+			popped = path.pop_back();
+			file << "->" << popped;
+#ifdef TO_FILE_AND_COUT
+			std::cout << "->" << popped;
+#endif
+		}
+		file << "\t[" << shortest_paths[i] << "]" << std::endl;
+#ifdef TO_FILE_AND_COUT
+		std::cout << "\t[" << shortest_paths[i] << "]" << std::endl;
+#endif
 	}
-
-	return out;
+	file.close();
 }

@@ -4,17 +4,40 @@
 #include "utils.h"
 
 template<typename T>
+class vector_iterator
+{
+	T * ptr;
+
+public:
+
+	vector_iterator() { ptr = NULL; }
+	vector_iterator(T * elem_ptr) { ptr = elem_ptr; }
+
+	~vector_iterator() {}
+
+	vector_iterator<T> operator++ (int) { vector_iterator<T> tmp = *this; ptr++; return tmp; }
+	vector_iterator<T> operator++ () { ptr++; return *this; }
+	vector_iterator<T> operator+ (ulint offset) { ptr += offset; return *this; }
+	vector_iterator<T> operator+= (ulint offset) { return *this = *this + offset; }
+	T & operator* () { return *ptr; }
+	bool operator== (vector_iterator<T> it) { return ptr == it.ptr; }
+	bool operator!= (vector_iterator<T> it) { return ptr != it.ptr; }
+};
+
+template<typename T>
 class Vector 
 {
+	static int cntr; //debug
 protected:
 	ulint alloc_size;
 	ulint size_;
 public:
+	int number;
 	T * data;
 
-//public:
-	Vector();
+	Vector(ulint size = 0);
 	~Vector();
+	Vector<T> & operator= (const Vector<T> & v);
 
 	void alloc_more();
 	void alloc_less();
@@ -26,35 +49,74 @@ public:
 	void insert(ulint i, T element);
 	void erase(ulint i);
 	const ulint size() const;
+
+	vector_iterator<T> begin();
+	vector_iterator<T> end();
 };
 
 template<typename T>
-Vector<T>::Vector()
+int Vector<T>::cntr = 0;
+
+template<typename T>
+Vector<T>::Vector(ulint size) : size_(size)
 {
-	alloc_size = 1;
-	data = new T[alloc_size];
-	size_ = 0;
+	number = cntr++;
+	if (size > 0)
+	{
+		alloc_size = nextPowerOf2(size);
+		data = new T[alloc_size];
+	}
+	else
+	{
+		alloc_size = 1;
+		data = new T[alloc_size];
+	}
 }
 
 template<typename T>
 Vector<T>::~Vector()
 {
-	for (int i = 0; i < size_; i++)
+	if (data != NULL)
 	{
-		delete &(data[i]);
+		delete[] data;
+	}
+}
+
+template <typename T>
+Vector<T> & Vector<T>::operator= (const Vector<T> & v)
+{
+	if (data != NULL)
+	{
+		delete[] data;
 	}
 
-	free(data);
+	size_ = v.size_;
+	alloc_size = v.alloc_size;
+	data = new T[alloc_size];
+	for (ulint i = 0; i < size_; i++)
+	{
+		data[i] = v.data[i];
+	}
+
+	return *this;
 }
 
 template<typename T>
 void Vector<T>::alloc_more()
 {
-	T * tmp = data;
 	alloc_size *= 2;
-	data = static_cast<T*>(malloc(alloc_size * sizeof(T)));
-	memcpy(data, tmp, size_ * sizeof(T));
-	free(tmp);
+	if (data != NULL)
+	{
+		T * tmp = data;
+		data = new T[alloc_size];
+		for (ulint i = 0; i < size_; i++)
+			data[i] = tmp[i];
+		delete[] tmp;
+	}
+	else
+	{
+		data = new T[alloc_size];
+	}
 }
 
 template<typename T>
@@ -62,9 +124,10 @@ void Vector<T>::alloc_less()
 {
 	T * tmp = data;
 	alloc_size /= 2;
-	data = static_cast<T*>(malloc(alloc_size * sizeof(T)));
-	memcpy(data, tmp, size_ * sizeof(T));
-	free(tmp);
+	data = new T[alloc_size];
+	for (ulint i = 0; i < size_; i++)
+		data[i] = tmp[i];
+	delete[] tmp;
 }
 
 template<typename T>
@@ -82,10 +145,9 @@ const T & Vector<T>::operator[](ulint i) const
 template<typename T>
 void Vector<T>::push_back(T element)
 {
-	if (++size_ > alloc_size)
+	if (size_ + 1> alloc_size)
 		alloc_more();
-
-	data[size_ - 1] = element;
+	data[size_++] = element;
 }
 
 template<typename T>
@@ -105,8 +167,10 @@ T Vector<T>::pop_back()
 template<typename T>
 void Vector<T>::insert(ulint i, T element)
 {
-	if (++size_ > alloc_size)
+	if (size_ + 1> alloc_size)
 		alloc_more();
+
+	size_++;
 
 	for (ulint j = size_ - 1; j > i; j--)
 	{
@@ -135,6 +199,18 @@ const ulint Vector<T>::size() const
 }
 
 template <typename T>
+vector_iterator<T> Vector<T>::begin()
+{
+	return vector_iterator<T>(data);
+}
+
+template <typename T>
+vector_iterator<T> Vector<T>::end()
+{
+	return vector_iterator<T>(data + size_);
+}
+
+template <typename T>
 std::ostream& operator<< (std::ostream& out, const Vector<T>& v) {
 	out << '[';
 
@@ -145,5 +221,6 @@ std::ostream& operator<< (std::ostream& out, const Vector<T>& v) {
 	
 	return out;
 }
+
 
 #endif

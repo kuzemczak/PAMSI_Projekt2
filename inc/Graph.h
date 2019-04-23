@@ -1,39 +1,38 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include <iostream>
-#include <string>
+#include "utils.h"
+#include "HeapQueue.h"
 
-#include "Vector.h"
-#include "List.h"
-
-class Neighbour
-{
-public:
-	ulint number;
-	unsigned int path_cost;
-
-	Neighbour(ulint num, ulint cost) : number(num), path_cost(cost) {}
-};
+#define TO_FILE_AND_COUT
 
 class Graph
 {
-	List<Neighbour> * adjacency_list_;
+protected:
 	ulint starting_node_;
 	ulint size_;
+	ulint * predecessors;
+	ulint * shortest_paths;
 public:
 	Graph();
 	~Graph();
 
-	void add_neighbour(ulint nodeNum, ulint neighbourNum, ulint pathCost);
-	
-	void read_file(const std::string & name);
-
+	virtual void read_file(const std::string & name) = 0;
+	virtual void generate_random(ulint size, double density) = 0;
+	virtual void solve_dijkstra() = 0;
+	virtual void solve_bellman_ford() = 0;
 	ulint size();
 	ulint starting_node();
-	List<Neighbour> & operator [] (ulint index);
+	void toFile(const std::string & s);
 };
 
-std::ostream & operator << (std::ostream & out, Graph & graph);
+template<typename T>
+void getIndices(HeapQueue<T> & heap, ulint * indices)
+{
+	for (ulint i = 0; i < heap.size(); i++)
+	{
+		indices[heap[i]] = i;
+	}
+}
 
 #endif

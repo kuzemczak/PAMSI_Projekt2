@@ -1,52 +1,62 @@
 #include <iostream>
-
+#include <chrono>
 //#include "Node.h"
 //#include "HeapQueue.h"
 //#include "Vector.h"
-//#include "Matrix.h"
-//#include "List.h"
-//#include "randutils.hpp"
-#include "Graph.h"
+#include "Matrix.h"
+#include "ListGraph.h"
+#include "MatrixGraph.h"
 #include "Dijkstra.h"
 
-/*thread_local std::mt19937 gen{ std::random_device{}() };
+typedef std::chrono::high_resolution_clock Clock;
 
-template<typename T>
-T random(T min, T max) {
-	return std::uniform_int_distribution<T>{min, max}(gen);
-}*/
 
 int main()
 {
-	/*HeapQueue<int> q;
+	double density = 0.5;
+	int nodes = 10;
+	int edges = density * nodes*(nodes - 1) / 2;
 
-	for (int i = 0; i < 10; i++)
+	std::ofstream file;
+	file.open("data/graph.txt", std::ios::out);
+
+	if (!file.is_open())
+		throw 3;
+
+	file << 2*edges << " " << nodes << " " << random(0, nodes - 1) << std::endl;
+	for (int i = 0; i < edges; i++)
 	{
-		q.push(random(0, 20));
+		int start = -1, end = -1, cost;
 
-		for (int j = 0; j <= i; j++)
-			std::cout << q[j] << " ";
-		std::cout << std::endl;
+		while (start == end)
+		{
+			start = random(0, nodes - 1);
+			end = random(0, nodes - 1);
+		}
+		cost = random(1, 10);
+		file << start << " " << end << " " << cost << std::endl
+			<< end << " " << start << " " << cost << std::endl;
 	}
-	std::cout << "hehe\n";
+	file.close();
+	do {
+		MatrixGraph graph0, graph1;
+		graph0.read_file("data/graph.txt");
+		graph1.read_file("data/graph.txt");
+		//graph.generate_random(10, 0.5);
+		std::cout << "graph0:\n" << graph0 << std::endl;
+		std::cout << "graph1:\n" << graph1 << std::endl;
+		//Dijkstra(graph0);
+		//auto t1 = Clock::now();
+		graph0.solve_dijkstra();
+		graph1.solve_bellman_ford();
+		//auto t2 = Clock::now();
+		//ulint time = static_cast<ulint>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count());
+		std::cout << "\nDijstra result:\n";
+		graph0.toFile("data/Dijkstra_result.txt");
+		std::cout << "\nBellman-Ford result:\n";
+		graph1.toFile("data/Bellman_Ford_result.txt");
 
-	for (int i = 0; i < 10; i++)
-	{
-		std::cout << q.pop_front() << " ";
-	}
-
-	std::cout << std::endl;*/
-	Graph graph;
-
-	if (UINT_MAX < 0)
-		std::cout << "smaller\n";
-	else
-		std::cout << "bigger\n";
-	graph.read_file("data/graph.txt");
-	std::cout << graph;
-	Dijkstra(graph);
-
-	getchar();
+	} while (getchar() == '\n');
 
 	return 0;
 }

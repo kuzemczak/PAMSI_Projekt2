@@ -2,8 +2,6 @@
 
 typedef Neighbour Node;
 
-template<typename T>
-void getIndices(HeapQueue<T> & heap, ulint * indices);
 
 void Dijkstra(Graph & graph)
 {
@@ -26,16 +24,16 @@ void Dijkstra(Graph & graph)
 	// filling the heap
 	for (ulint i = 0; i < graph.size(); i++)
 	{
-		nonVisited.push(i, UINT_MAX);
-		visited[i] = UINT_MAX;
-		predecessors[i] = UINT_MAX;
+		nonVisited.push(i, INF);
+		visited[i] = INF;
+		predecessors[i] = INF;
 	}
 
 
 	// obtaining indices from heap
 	getIndices(nonVisited, indices);
 
-	// setting path cost to starting node as 0
+	// setting starting node's path cost as 0
 	// the heap automatically recovers
 	nonVisited.set_item_key(indices[graph.starting_node()], 0);
 
@@ -44,22 +42,69 @@ void Dijkstra(Graph & graph)
 		ulint currentCost = nonVisited.get_key(0);
 		ulint currentNumber = nonVisited.pop_front();
 		getIndices(nonVisited, indices);
-
-		for (list_iterator<Neighbour> it = graph[currentNumber].begin();
-			it != graph[currentNumber].end(); it++)
+		
+		if (typeid(graph) == typeid(ListGraph))
 		{
-			if (nonVisited.contains((*it).number) &&
-				nonVisited.get_key(indices[(*it).number]) > currentCost + (*it).path_cost)
-			{
-				nonVisited.set_item_key(indices[(*it).number], currentCost + (*it).path_cost);
-				predecessors[(*it).number] = currentNumber;
-				getIndices(nonVisited, indices);
-			}
+			innerLoop(dynamic_cast<ListGraph&>(graph), 
+				nonVisited, 
+				indices, 
+				predecessors, 
+				currentNumber, 
+				currentCost);
 		}
-
+		else if (typeid(graph) == typeid(MatrixGraph))
+		{
+			innerLoop(dynamic_cast<MatrixGraph&>(graph),
+				nonVisited,
+				indices,
+				predecessors,
+				currentNumber,
+				currentCost);
+		}
 		visited[currentNumber] = currentCost;
 	}
 
+	toFile(graph, predecessors, visited);
+}
+
+void innerLoop(ListGraph & graph, HeapQueue<int> & nonVisited,
+	ulint * indices, 
+	ulint * predecessors, 
+	ulint & currentNumber,
+	ulint & currentCost)
+{
+	for (Neighbour neigh : graph[currentNumber])
+	{
+		if (nonVisited.contains(neigh.number) &&
+			nonVisited.get_key(indices[neigh.number]) > currentCost + neigh.path_cost)
+		{
+			nonVisited.set_item_key(indices[neigh.number], currentCost + neigh.path_cost);
+			predecessors[neigh.number] = currentNumber;
+			getIndices(nonVisited, indices);
+		}
+	}
+}
+
+void innerLoop(MatrixGraph & graph, HeapQueue<int> & nonVisited,
+	ulint * indices,
+	ulint * predecessors,
+	ulint & currentNumber,
+	ulint & currentCost)
+{
+	for (ulint i = 0; i < graph.size(); i++)
+	{
+		if (graph[currentNumber][i] != 0 && nonVisited.contains(i) &&
+			nonVisited.get_key(indices[i]) > currentCost + graph[currentNumber][i])
+		{
+			nonVisited.set_item_key(indices[i], currentCost + graph[currentNumber][i]);
+			predecessors[i] = currentNumber;
+			getIndices(nonVisited, indices);
+		}
+	}
+}
+
+void toFile(Graph & graph, ulint * predecessors, ulint * visited)
+{
 	std::ofstream file;
 	file.open("data/Dijkstra_result.txt", std::ios::out);
 	if (!file.is_open())
@@ -70,7 +115,8 @@ void Dijkstra(Graph & graph)
 		file << i << ": ";
 		Vector<ulint> path;
 		path.push_back(i);
-		while (path[path.size() - 1] != graph.starting_node())
+		while (path[path.size() - 1] != graph.starting_node() &&
+			predecessors[path[path.size() - 1]] < graph.size())
 		{
 			path.push_back(predecessors[path[path.size() - 1]]);
 		}
@@ -79,16 +125,7 @@ void Dijkstra(Graph & graph)
 		{
 			file << "->" << path.pop_back();
 		}
-		file << std::endl;
+		file << "\t[" << visited[i] << "]" << std::endl;
 	}
 	file.close();
-}
-
-template<typename T>
-void getIndices(HeapQueue<T> & heap, ulint * indices)
-{
-	for (ulint i = 0; i < heap.size(); i++)
-	{
-		indices[heap[i]] = i;
-	}
 }
