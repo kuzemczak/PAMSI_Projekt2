@@ -32,7 +32,7 @@ public:
 	List<Neighbour> & operator [] (ulint index);
 	void generate_random(ulint size, double density);
 	void solve_dijkstra();
-	void solve_bellman_ford() {}
+	void solve_bellman_ford();
 };
 
 std::ostream & operator << (std::ostream & out, ListGraph & graph);

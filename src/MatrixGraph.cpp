@@ -77,6 +77,12 @@ Vector<ulint> & MatrixGraph::operator[] (ulint index)
 
 void MatrixGraph::generate_random(ulint size, double density)
 {
+	if (size == 0 || density < 0.1)
+	{
+		std::cout << "Error: MatrixGraph::generate_random : zero parameter, shouldn't be.";
+		throw 5;
+	}
+
 	size_ = size;
 	starting_node_ = random((ulint)0, size_ - 1);
 	ulint edges = density * size_*(size_ - 1) / 2;
@@ -87,17 +93,17 @@ void MatrixGraph::generate_random(ulint size, double density)
 		delete[] shortest_paths;
 	shortest_paths = new ulint[size_];
 	if (adjacency_matrix_ != NULL)
-		delete[] adjacency_matrix_;
+		delete adjacency_matrix_;
 	adjacency_matrix_ = new Matrix<ulint>(size_, size_);
 	adjacency_matrix_->zeros();
 
-	for (int i = 0; i < size_; i++)
+	for (ulint i = 0; i < edges; i++)
 	{
 		ulint node = 0, neighbour = 0, cost = random((ulint)1, size_);
 		do {
 			node = random((ulint)0, size_ - 1);
 			neighbour = random((ulint)0, size_ - 1);
-		} while (node == neighbour && (*adjacency_matrix_)[node][neighbour] == 0);
+		} while (node == neighbour || (*adjacency_matrix_)[node][neighbour] != 0);
 		(*adjacency_matrix_)[node][neighbour] = cost;
 		(*adjacency_matrix_)[neighbour][node] = cost;
 	}

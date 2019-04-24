@@ -36,6 +36,15 @@ void ListGraph::read_file(const std::string & name)
 
 	starting_node_ = cost;
 	size_ = node;
+
+	if (predecessors != NULL)
+		delete[] predecessors;
+	predecessors = new ulint[size_];
+
+	if (shortest_paths != NULL)
+		delete[] shortest_paths;
+	shortest_paths = new ulint[size_];
+
 	if(adjacency_list_ != NULL)
 		delete[] adjacency_list_;
 	adjacency_list_ = new List<Neighbour>[node];
@@ -67,6 +76,12 @@ List<Neighbour> & ListGraph::operator [] (ulint index)
 
 void ListGraph::generate_random(ulint size, double density)
 {
+	if (size == 0 || density < 0.1)
+	{
+		std::cout << "Error: ListGraph::generate_random : zero parameter, shouldn't be.";
+		throw 5;
+	}
+
 	size_ = size;
 	starting_node_ = random((ulint)0, size_ - 1);
 	ulint edges = density * size_*(size_ - 1) / 2;
@@ -80,13 +95,13 @@ void ListGraph::generate_random(ulint size, double density)
 		delete[] adjacency_list_;
 	adjacency_list_ = new List<Neighbour>[size_];
 
-	for (int i = 0; i < size_; i++)
+	for (int i = 0; i < edges; i++)
 	{
 		ulint node = 0, neighbour = 0, cost = random((ulint)1, size_);
 		do {
 			node = random((ulint)0, size_ - 1);
 			neighbour = random((ulint)0, size_ - 1);
-		} while (node == neighbour && listContains(node, neighbour));
+		} while (node == neighbour || listContains(node, neighbour));
 		add_neighbour(node, neighbour, cost);
 		add_neighbour(neighbour, node, cost);
 	}
@@ -134,6 +149,32 @@ void ListGraph::solve_dijkstra()
 			}
 		}
 		shortest_paths[currentNumber] = currentCost;
+	}
+}
+
+void ListGraph::solve_bellman_ford()
+{
+	for (ulint i = 0; i < size_; i++)
+	{
+		shortest_paths[i] = INF;
+		predecessors[i] = INF;
+	}
+
+	shortest_paths[starting_node_] = 0;
+
+	for (ulint i = 0; i < size_ - 1; i++)
+	{
+		for (ulint j = 0; j < size_; j++)
+		{
+			for (Neighbour n : adjacency_list_[j])
+			{
+				if (shortest_paths[n.number] > n.path_cost + shortest_paths[j])
+				{
+					shortest_paths[n.number] = n.path_cost + shortest_paths[j];
+					predecessors[n.number] = j;
+				}
+			}
+		}
 	}
 }
 

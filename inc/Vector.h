@@ -50,8 +50,9 @@ public:
 	void erase(ulint i);
 	const ulint size() const;
 
-	vector_iterator<T> begin();
-	vector_iterator<T> end();
+	//vector_iterator<T> begin();
+	const vector_iterator<T> begin() const;
+	const vector_iterator<T> end() const;
 };
 
 template<typename T>
@@ -199,13 +200,13 @@ const ulint Vector<T>::size() const
 }
 
 template <typename T>
-vector_iterator<T> Vector<T>::begin()
+const vector_iterator<T> Vector<T>::begin() const
 {
 	return vector_iterator<T>(data);
 }
 
 template <typename T>
-vector_iterator<T> Vector<T>::end()
+const vector_iterator<T> Vector<T>::end() const
 {
 	return vector_iterator<T>(data + size_);
 }
