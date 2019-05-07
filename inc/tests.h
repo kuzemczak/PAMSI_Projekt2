@@ -9,6 +9,8 @@
 
 typedef std::chrono::high_resolution_clock Clock;
 
+enum TestedAlgorithm {DIJKSTRA, BELLMAN_FORD};
+
 struct namedGraph
 {
 	Graph *graph;
@@ -25,7 +27,6 @@ struct namedGraph
 	}
 };
 
-void testDijkstra(const Vector<ulint> & sizes, const Vector<double> & densities, ulint iterations);
-void testBellmanFord(Vector<ulint> sizes, Vector<double> densities, ulint iterations);
+void testGraphAlgorithm(TestedAlgorithm algorithm, const Vector<ulint> & sizes, const Vector<double> & densities, ulint iterations);
 
 #endif

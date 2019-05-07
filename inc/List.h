@@ -3,11 +3,15 @@
 
 #include "utils.h"
 
+// element listy
 template<typename T>
 class list_elem 
 {
 public:
+	// wskaznik na nastepny element listy
 	list_elem<T> * next;
+
+	// zawartosc elementu
 	T data;
 
 	list_elem(T dat) : 
@@ -18,9 +22,11 @@ public:
 		next(nxt) {}
 };
 
+// iterator listy
 template<typename T>
 class list_iterator
 {
+	// wskaznik na element listy w obecnej iteracji
 	list_elem<T> * ptr;
 
 public:
@@ -43,17 +49,21 @@ public:
 	bool operator!= (list_iterator<T> it) { return ptr != it.ptr; }
 };
 
+// Lista jednokierunkowa
 template<typename T>
 class List
 {
+	// pierwszy element listy
 	list_elem<T>* first;
+
+	// wielkosc listy
 	ulint list_size;
 
 public:
 	List() { first = NULL; list_size = 0; }
-	~List() {}
+	~List();
 
-	void push(T elem);
+	void push_front(T elem);
 	T pop();
 	T erase(ulint i);
 	void insert(ulint i, T elem);
@@ -67,7 +77,21 @@ public:
 };
 
 template<typename T>
-void List<T>::push(T elem)
+List<T>::~List()
+{
+	list_elem<T> *tmp;
+	list_elem<T> *next;
+	tmp = first;
+	for (ulint i = 0; i < list_size; i++)
+	{
+		next = tmp->next;
+		delete tmp;
+		tmp = next;
+	}
+}
+
+template<typename T>
+void List<T>::push_front(T elem)
 {
 	list_elem<T> * newElem = new list_elem<T>(elem, first);
 	first = newElem;

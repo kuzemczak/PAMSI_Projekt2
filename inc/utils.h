@@ -6,7 +6,7 @@
 
 #define INDEX_OUT_OF_BOUNDS 1
 
-typedef unsigned int ulint;
+typedef int ulint;
 
 #define INF (ulint)1000000000
 

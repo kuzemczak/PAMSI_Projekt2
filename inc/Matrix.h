@@ -4,11 +4,14 @@
 #include "utils.h"
 #include "Vector.h"
 
+// Macierz
 template <typename T>
 class Matrix
 {
+	// ilosc wierszy, kolumn
 	ulint num_rows, num_cols;
 
+	// Wektor wektorow, wlasciwa macierz
 	Vector<Vector<T>> *data;
 public:
 	Matrix(ulint rws, ulint cls);

@@ -7,11 +7,15 @@
 #include "Vector.h"
 #include "utils.h"
 
+// Klasa - element kolejki priorytetowej
 template<typename T>
 class QueueItem
 {
 public:
+	// klucz wg. ktorego oceniany jest priorytet
 	ulint key;
+	
+	// zawartosc elementu
 	T data;
 
 	QueueItem(int k = 0) :
@@ -21,9 +25,12 @@ public:
 		data(dat) {}
 };
 
+// Kolejka priorytetowa w postaci kopca
 template<typename T>
 class HeapQueue : public Vector<QueueItem<T>>
 {
+	// funkcja porownujaca dwa elementy,
+	// wg ktorej budowany jest kopiec
 	bool(*comparator)(QueueItem<T>, QueueItem<T>);
 
 	using Vector<QueueItem<T>>::size_;
@@ -37,14 +44,28 @@ public:
 	using Vector<QueueItem<T>>::pop_back;
 	using Vector<QueueItem<T>>::push_back;
 
+	// odbudowanie kopca przesuwajac element w gore
 	ulint reheap_item_up(ulint index);
+
+	// odbudowanie kopca przesuwajac element w dol
 	ulint reheap_item_down(ulint index);
 
+	// zdjecie elementu ze szczytu kopca
 	T pop_front();
+
+	// wepchniecie elementu na kopiec
+	// i odbudowanie kopca
+	// zwraca indeks elementu po odbudowaniu
 	ulint push(T element, ulint key = 0);
+
+	// ustawienie klucza wskazanego elementu
+	// i odbudowanie kopca
 	ulint set_item_key(ulint index, ulint newKey);
 
+	// uzyskanei zawartosci wskazanego elementu
 	T & operator [] (ulint index);
+
+	// uzyskanie klucza wskazanego elementu
 	ulint get_key(ulint index);
 
 	bool contains(T element);
@@ -65,8 +86,11 @@ HeapQueue<T>::HeapQueue(bool(*cmp)(QueueItem<T>, QueueItem<T>))
 template<typename T>
 ulint HeapQueue<T>::reheap_item_up(ulint index)
 {
+	// indeks elementu i jego rodzica
 	int el_index = index, parent_index;
 
+	// przesuwanie elementu w gore dopoki kopiec
+	// nie bedzie odbudowany
 	while (el_index > 0)
 	{
 		parent_index = (el_index - 1) / 2;
